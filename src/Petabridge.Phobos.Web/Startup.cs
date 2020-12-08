@@ -77,7 +77,6 @@ namespace Petabridge.Phobos.Web
                         o.Enabled = true;
                         o.ReportingEnabled = true;
                     })
-                    .OutputMetrics.AsPrometheusPlainText()
                     .Report.ToDatadogHttp(options => {
                         options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
                         options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
@@ -86,14 +85,6 @@ namespace Petabridge.Phobos.Web
                         options.FlushInterval = TimeSpan.FromSeconds(20);
                     })
                     .Build();
-
-                services.AddMetricsEndpoints(ep =>
-                {
-                    ep.MetricsTextEndpointOutputFormatter = metrics.OutputMetricsFormatters
-                        .OfType<MetricsPrometheusTextOutputFormatter>().First();
-                    ep.MetricsEndpointOutputFormatter = metrics.OutputMetricsFormatters
-                        .OfType<MetricsPrometheusTextOutputFormatter>().First();
-                });
             });
             services.AddMetricsReportingHostedService();
         }
