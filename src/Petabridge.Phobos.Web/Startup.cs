@@ -12,7 +12,6 @@ using Akka.Actor;
 using Akka.Bootstrap.Docker;
 using Akka.Configuration;
 using App.Metrics;
-using App.Metrics.Formatters.Prometheus;
 using Datadog.Trace.OpenTracing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
