@@ -77,7 +77,10 @@ namespace Petabridge.Phobos.Web
                         o.ReportingEnabled = true;
                     })
                     .Report.ToDatadogHttp(options => {
-                        options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
+                        // need to wait until we have DogstatsD support https://github.com/AppMetrics/AppMetrics/pull/627
+                        //options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
+                        options.Datadog.BaseUri = new Uri($"https://api.datadoghq.com/");
+                        options.Datadog.ApiKey = Environment.GetEnvironmentVariable("DD_API_KEY");
                         options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
                         options.HttpPolicy.FailuresBeforeBackoff = 5;
                         options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
@@ -134,7 +137,6 @@ namespace Petabridge.Phobos.Web
 
             // enable App.Metrics routes
             app.UseMetricsAllMiddleware();
-            app.UseMetricsAllEndpoints();
 
             app.UseEndpoints(endpoints =>
             {
