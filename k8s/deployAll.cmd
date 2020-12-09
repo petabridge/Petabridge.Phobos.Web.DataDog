@@ -33,9 +33,12 @@ for %%f in (%location%/*.yaml) do (
     kubectl apply -f "%location%/%%~nxf" -n "%namespace%"
 )
 
+echo "Creating K8s secret with Datadog API Key"
+kubectl create secret generic datadog-secrets -n %namespace% --from-literal=DD_API_KEY=%datadogKey%
+
 echo "Installing DataDog via Helm v3"
 REM see https://app.datadoghq.com/signup/agent#kubernetes for instructions
-helm install datadog-agent -f "%~dp0/services/datadog-values.yaml" --set datadog.site="datadoghq.com" --set datadog.apiKey=%datadogKey% --namespace "%namespace%" datadog/datadog 
+helm install datadog-agent --set datadog.site="datadoghq.com" --set datadog.apiKey=%datadogKey% --namespace "%namespace%" datadog/datadog 
 
 echo "Creating all services..."
 for %%f in (%~dp0/services/*.yaml) do (
