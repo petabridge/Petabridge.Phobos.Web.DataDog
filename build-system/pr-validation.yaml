@@ -23,7 +23,7 @@ jobs:
       displayName: 'Windows PR Validation'
       vmImage: 'vs2017-win2016'
       scriptFileName: build.cmd
-      scriptArgs: all customNuGetSource=$(sdkbinPreAuthenticated)
+      scriptArgs: "all customNuGetSource=$(sdkbinPreAuthenticated)"
   - template: azure-pipeline.template.yaml
     parameters:
       name: 'linux_pr'
