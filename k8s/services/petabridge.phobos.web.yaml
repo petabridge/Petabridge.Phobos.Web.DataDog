@@ -72,16 +72,15 @@ spec:
             configMapKeyRef:
               name: pb-configs
               key: environment
-        - name: JAEGER_AGENT_HOST
-          value: "jaeger-agent"    
-        - name: JAEGER_AGENT_PORT
-          value: "6831"
-        - name: JAEGER_SAMPLER_PARAM
-          value: "1"
         - name: DD_AGENT_HOST
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+        - name: DD_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: datadog-secrets
+              key: DD_API_KEY
         livenessProbe:
           tcpSocket:
             port: 4055
