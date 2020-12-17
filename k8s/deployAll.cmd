@@ -38,7 +38,7 @@ kubectl create secret generic datadog-secrets -n %namespace% --from-literal=DD_A
 
 echo "Installing DataDog via Helm v3"
 REM see https://app.datadoghq.com/signup/agent#kubernetes for instructions
-helm install datadog-agent --set datadog.site="datadoghq.com" --set datadog.apiKey=%datadogKey% --namespace "%namespace%" datadog/datadog 
+helm install datadog-agent -f "%~dp0/datadog/datadog-values.yaml" --set datadog.site="datadoghq.com" --set datadog.apiKey=%datadogKey% --namespace "%namespace%" --version v2.5.5 datadog/datadog 
 
 echo "Creating all services..."
 for %%f in (%~dp0/services/*.yaml) do (
