@@ -1,13 +1,11 @@
-# Petabridge.Phobos.Web
+# Petabridge.Phobos.Web.DataDog
 
 This project is a ready-made solution for testing [Phobos](https://phobos.petabridge.com/) in a real production environment using the following technologies:
 
 - .NET Core 3.1
 - ASP.NET Core 3.1
 - [Akka.Cluster](https://getakka.net/)
-- [Prometheus](https://prometheus.io/)
-- [Jaeger Tracing](https://www.jaegertracing.io/)
-- [Grafana](https://grafana.com/)
+- [DataDog](https://www.datadoghq.com/)
 - [Docker](https://www.docker.com/)
 - and finally, [Kubernetes](https://kubernetes.io/)
 
