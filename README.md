@@ -45,6 +45,20 @@ This sample is designed to work with [DataDog Application Performance Monitoring
 
 To run this sample, you will need a copy of your DataDog API Key - which will be passed into the local Kubernetes cluster created by this tutorial.
 
+### Retreiving the DataDog Helm Charts
+This sample uses [Helm](https://helm.sh/) to install [DataDog's Agent Helm Chart](https://github.com/DataDog/helm-charts/blob/master/charts/datadog/README.md) into a local Kubernetes cluster.
+
+To run this sample you will need to [first install the Helm CLI](https://helm.sh/docs/intro/install/).
+
+Next, you will need to add the DataDog Helm repository to your system:
+
+```
+helm repo add datadog https://helm.datadoghq.com
+helm repo update
+```
+
+And that's it!
+
 ### Deploying the K8s Cluster (with Telemetry Installed)
 From there, everything you need to run the solution in Kubernetes is already defined inside the [`k8s/` folder](k8s/) - just run the following command to launch the Phobos-enabled application inside Kubernetes:
 
@@ -95,14 +109,8 @@ replicaset.apps/prometheus-deployment-c6d99b8b9   1         1         1       11
 Once the cluster is fully up and running you can explore the application and its associated telemetry via the following Urls:
 
 * [http://localhost:1880](http://localhost:1880) - generates traffic across the Akka.NET cluster inside the `phobos-web` service.
-* [http://localhost:16686/](http://localhost:16686/) - Jaeger tracing UI. Allows to explore the traces that are distributed across the different nodes in the cluster.
-* [http://localhost:9090/](http://localhost:9090/) - Prometheus query UI.
-* [http://localhost:3000/](http://localhost:3000/) - Grafana metrics. Log in using the username **admin** and the password **admin**. It includes some ready-made dashboards you can use to explore Phobos + App.Metrics metrics:
-	- [Akka.NET Metrics](http://localhost:3000/d/I84lyfiMk/akka-net-metrics?orgId=1)
-	- [ASP.NET Core Metrics](http://localhost:3000/d/ggsijSPZz/asp-net-core-metrics?orgId=1)
-	- [Kubernetes Cluster Metrics](http://localhost:3000/d/9q974SWGz/kubernetes-pod-resources?orgId=1)
 
-There's many more metrics exported by Phobos that you can use to create your own dashboards or extend the existing ones - you can view all of them by going to [http://localhost:1880/metrics](http://localhost:1880/metrics)
+And you should be able to view both the metrics and traces produced by Petabridge.Phobos.Web.DataDog inside your DataDog UI.
 
 ### Tearing Down the Cluster
 When you're done exploring this sample, you can tear down the cluster by running the following command:
