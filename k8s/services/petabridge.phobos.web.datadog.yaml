@@ -51,7 +51,7 @@ spec:
       terminationGracePeriodSeconds: 35
       containers:
       - name: phobos-web
-        image: petabridge.phobos.web:0.1.0
+        image: petabridge.phobos.web.datadog:0.1.0
         lifecycle:
           preStop:
             exec:
@@ -84,6 +84,10 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 4055
+        readinessProbe:
+          httpGet:
+            path: "/"
+            port: 80
         ports:
         - containerPort: 4055
           protocol: TCP
