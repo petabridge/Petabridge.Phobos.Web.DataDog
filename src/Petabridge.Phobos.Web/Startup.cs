@@ -50,8 +50,13 @@ namespace Petabridge.Phobos.Web
             services.AddOpenTracing(o =>
             {
                 o.ConfigureAspNetCore(a =>
-                    a.Hosting.OperationNameResolver = context => $"{context.Request.Method} {context.Request.Path}");
-                o.AddCoreFx();
+                {
+                    a.Hosting.OperationNameResolver = context => $"{context.Request.Method} {context.Request.Path}";
+
+                    // skip Prometheus HTTP /metrics collection from appearing in our tracing system
+                    a.Hosting.IgnorePatterns.Add(x => x.Request.Path.StartsWithSegments(new PathString("/metrics")));
+                });
+                o.ConfigureGenericDiagnostics(c => { });
             });
 
             // sets up Prometheus + DataDog + ASP.NET Core metrics
