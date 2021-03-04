@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Petabridge.Phobos.Web\Petabridge.Phobos.Web.DataDog.csproj" />
+    <ProjectReference Include="..\Petabridge.Phobos.Web.DataDog\Petabridge.Phobos.Web.DataDog.csproj" />
   </ItemGroup>
 
 </Project>
