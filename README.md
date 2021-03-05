@@ -1,5 +1,7 @@
 # Petabridge.Phobos.Web.DataDog
 
+> NOTE: this solution uses the [shared Phobos + DataDog Akka.Cluster dashboard built by Petabridge](https://phobos.petabridge.com/articles/dashboards/datadog-dashboard.html), which you can install in your own application via Datadog's dashboard import process explained here: https://phobos.petabridge.com/articles/dashboards/datadog-dashboard.html#installation-instructions
+
 This project is a ready-made solution for testing [Phobos](https://phobos.petabridge.com/) in a real production environment using the following technologies:
 
 - .NET Core 3.1
