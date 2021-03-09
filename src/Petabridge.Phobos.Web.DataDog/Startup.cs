@@ -12,6 +12,7 @@ using Akka.Actor;
 using Akka.Bootstrap.Docker;
 using Akka.Configuration;
 using App.Metrics;
+using App.Metrics.Formatting.StatsD;
 using App.Metrics.Reporting.StatsD.Builder;
 using Datadog.Trace.OpenTracing;
 using Microsoft.AspNetCore.Builder;
@@ -85,6 +86,7 @@ namespace Petabridge.Phobos.Web
                     .Report.ToStatsDUdp(b => {
                         b.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
                         b.SocketSettings.Port = 8125;
+                        b.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
                     })
                     .Build();
             });
