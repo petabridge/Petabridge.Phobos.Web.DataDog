@@ -12,6 +12,7 @@ using Akka.Actor;
 using Akka.Bootstrap.Docker;
 using Akka.Configuration;
 using App.Metrics;
+using App.Metrics.Reporting.StatsD.Builder;
 using Datadog.Trace.OpenTracing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -81,7 +82,16 @@ namespace Petabridge.Phobos.Web
                         o.Enabled = true;
                         o.ReportingEnabled = true;
                     })
-                    .Report.ToDatadogHttp(options => {
+                    .Report.ToStatsDUdp(b => {
+                        b.SocketSettings.Address = {Environment.GetEnvironmentVariable("DD_AGENT_HOST");
+                        b.SocketSettings.Port = 8125;
+                    })
+                    .Build();
+            });
+            services.AddMetricsReportingHostedService();
+
+/*
+    .ToDatadogHttp(options => {
                         // need to wait until we have DogstatsD support https://github.com/AppMetrics/AppMetrics/pull/627
                         //options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
                         options.Datadog.BaseUri = new Uri($"https://api.datadoghq.com/");
@@ -91,9 +101,8 @@ namespace Petabridge.Phobos.Web
                         options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
                         options.FlushInterval = TimeSpan.FromSeconds(20);
                     })
-                    .Build();
-            });
-            services.AddMetricsReportingHostedService();
+*/
+
         }
 
         public static void ConfigureDataDogTracing(IServiceCollection services)
