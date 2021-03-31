@@ -13,7 +13,7 @@ using Akka.Bootstrap.Docker;
 using Akka.Configuration;
 using App.Metrics;
 using App.Metrics.Formatting.StatsD;
-using App.Metrics.Reporting.StatsD.Builder;
+using App.Metrics.Reporting.StatsD;
 using Datadog.Trace.OpenTracing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
