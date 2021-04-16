@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="App.Metrics.Datadog" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.Datadog" Version="4.2.0" />
     <PackageReference Include="Datadog.Trace.OpenTracing" Version="1.25.0" />
     <PackageReference Include="Phobos.Actor.Cluster" Version="$(PhobosVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
