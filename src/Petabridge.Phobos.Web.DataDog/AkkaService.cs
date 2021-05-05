@@ -13,7 +13,6 @@ using Akka.Routing;
 using Akka.Util;
 using App.Metrics.Timer;
 using Microsoft.Extensions.Hosting;
-using Petabridge.Cmd.Cluster;
 using Petabridge.Cmd.Host;
 using Petabridge.Cmd.Remote;
 using Phobos.Actor;
@@ -99,14 +98,11 @@ namespace Petabridge.Phobos.Web
         public AkkaActors(ActorSystem sys)
         {
             Sys = sys;
-            ConsoleActor = sys.ActorOf(Props.Create(() => new ConsoleActor()), "console");
-            RouterActor = sys.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "echo");
+            RouterActor = sys.ActorOf(Props.Create(() => new ConsoleActor()).WithRouter(FromConfig.Instance), "echo");
             RouterForwarderActor = sys.ActorOf(Props.Create(() => new RouterForwarderActor(RouterActor)), "fwd");
         }
 
         internal ActorSystem Sys { get; }
-
-        public IActorRef ConsoleActor { get; }
 
         internal IActorRef RouterActor { get; }
 
@@ -126,7 +122,6 @@ namespace Petabridge.Phobos.Web
         {
             // start https://cmd.petabridge.com/ for diagnostics and profit
             var pbm = PetabridgeCmd.Get(_actors.Sys); // start Pbm
-            pbm.RegisterCommandPalette(ClusterCommands.Instance);
             pbm.RegisterCommandPalette(RemoteCommands.Instance);
             pbm.Start(); // begin listening for PBM management commands
 
