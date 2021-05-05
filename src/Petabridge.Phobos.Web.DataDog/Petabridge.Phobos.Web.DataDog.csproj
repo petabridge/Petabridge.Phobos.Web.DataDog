@@ -17,9 +17,8 @@
   <ItemGroup>
     <PackageReference Include="App.Metrics.Datadog" Version="4.2.0" />
     <PackageReference Include="Datadog.Trace.OpenTracing" Version="1.27.1" />
-    <PackageReference Include="Phobos.Actor.Cluster" Version="$(PhobosVersion)" />
+    <PackageReference Include="Phobos.Actor" Version="$(PhobosVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
-    <PackageReference Include="Petabridge.Cmd.Cluster" Version="$(PbmVersion)" />
     <PackageReference Include="Petabridge.Cmd.Remote" Version="$(PbmVersion)" />
     <PackageReference Include="Akka.Bootstrap.Docker">
       <Version>0.5.3</Version>
