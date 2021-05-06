@@ -1,0 +1,15 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "11:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: Datadog.Trace.OpenTracing
+    versions:
+    - 1.26.0
+  - dependency-name: OpenTracing.Contrib.NetCore
+    versions:
+    - 0.7.1
