@@ -12,6 +12,8 @@ using Akka.Actor;
 using Akka.Bootstrap.Docker;
 using Akka.Configuration;
 using App.Metrics;
+using App.Metrics.Formatting.StatsD;
+using App.Metrics.Reporting.StatsD;
 using Datadog.Trace.OpenTracing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -81,15 +83,12 @@ namespace Petabridge.Phobos.Web
                         o.Enabled = true;
                         o.ReportingEnabled = true;
                     })
-                    .Report.ToDatadogHttp(options => {
-                        // need to wait until we have DogstatsD support https://github.com/AppMetrics/AppMetrics/pull/627
-                        //options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
-                        options.Datadog.BaseUri = new Uri($"https://api.datadoghq.com/");
-                        options.Datadog.ApiKey = Environment.GetEnvironmentVariable("DD_API_KEY");
-                        options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
-                        options.HttpPolicy.FailuresBeforeBackoff = 5;
-                        options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
-                        options.FlushInterval = TimeSpan.FromSeconds(20);
+                    .Report.ToStatsDUdp(opt =>
+                    {
+                        opt.SocketSettings.Address = "localhost";
+                        opt.SocketSettings.Port = 8125;
+                        opt.SocketSettings.MaxUdpDatagramSize = 1024 * 4;
+                        opt.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
                     })
                     .Build();
             });
@@ -112,7 +111,7 @@ namespace Petabridge.Phobos.Web
                 var metrics = sp.GetRequiredService<IMetricsRoot>();
                 var tracer = sp.GetRequiredService<ITracer>();
 
-                var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf")).BootstrapFromDocker();
+                var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf"));
 
                 var phobosSetup = PhobosSetup.Create(new PhobosConfigBuilder()
                         .WithMetrics(m =>
