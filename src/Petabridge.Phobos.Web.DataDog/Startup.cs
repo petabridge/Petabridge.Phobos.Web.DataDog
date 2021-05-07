@@ -85,35 +85,19 @@ namespace Petabridge.Phobos.Web
                     })
                     .Report.ToStatsDUdp(b => {
                         b.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
-                        b.SocketSettings.Port = 8125;
+                        b.SocketSettings.Port = int.Parse(Environment.GetEnvironmentVariable("DD_DOGSTATSD_PORT"));
                         b.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
                     })
                     .Build();
             });
             services.AddMetricsReportingHostedService();
-
-/*
-    .ToDatadogHttp(options => {
-                        // need to wait until we have DogstatsD support https://github.com/AppMetrics/AppMetrics/pull/627
-                        //options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
-                        options.Datadog.BaseUri = new Uri($"https://api.datadoghq.com/");
-                        options.Datadog.ApiKey = Environment.GetEnvironmentVariable("DD_API_KEY");
-                        options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
-                        options.HttpPolicy.FailuresBeforeBackoff = 5;
-                        options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
-                        options.FlushInterval = TimeSpan.FromSeconds(20);
-                    })
-*/
-
         }
 
         public static void ConfigureDataDogTracing(IServiceCollection services)
         {
             // Add DataDog Tracing
-            services.AddSingleton<ITracer>(sp =>
-            {
-                return OpenTracingTracerFactory.CreateTracer().WithScopeManager(new ActorScopeManager());
-            });
+            var tracer = OpenTracingTracerFactory.CreateTracer().WithScopeManager(new ActorScopeManager());
+            services.AddSingleton<ITracer>(tracer);
         }
 
         public static void ConfigureAkka(IServiceCollection services)
@@ -131,8 +115,7 @@ namespace Petabridge.Phobos.Web
                         .WithTracing(t => t.SetTracer(tracer))) // binds Phobos to same tracer as ASP.NET Core
                     .WithSetup(BootstrapSetup.Create()
                         .WithConfig(config) // passes in the HOCON for Akka.NET to the ActorSystem
-                        .WithActorRefProvider(PhobosProviderSelection
-                            .Cluster)); // last line activates Phobos inside Akka.NET
+                        .WithActorRefProvider(PhobosProviderSelection.Cluster)); // last line activates Phobos inside Akka.NET
 
                 var sys = ActorSystem.Create("ClusterSys", phobosSetup);
 

@@ -5,4 +5,8 @@ metadata:
   name: pb-configs
 data:
   # Configuration values can be set as key-value properties
-  environment: Development
+  environment: "Development"
+  dd-service: "akka.cluster"
+  dd-dogstatsd-port: "8125"
+  dd-trace-agent-port: "8126"
+  dd-apm-receiver-port: "8126"
