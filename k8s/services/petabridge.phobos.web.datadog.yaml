@@ -72,10 +72,38 @@ spec:
             configMapKeyRef:
               name: pb-configs
               key: environment
+        - name: DD_ENV
+          valueFrom:
+            fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/env']
+        - name: DD_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: pb-configs
+              key: dd-service
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/version']
         - name: DD_AGENT_HOST
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+        - name: DD_DOGSTATSD_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: pb-configs
+              key: dd-dogstatsd-port
+        - name: DD_TRACE_AGENT_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: pb-configs
+              key: dd-trace-agent-port
+        - name: DD_APM_RECEIVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: pb-configs
+              key: dd-apm-receiver-port
         - name: DD_API_KEY
           valueFrom:
             secretKeyRef:

@@ -45,7 +45,7 @@ This sample is designed to work with [DataDog Application Performance Monitoring
 
 To run this sample, you will need a copy of your DataDog API Key - which will be passed into the local Kubernetes cluster created by this tutorial.
 
-To [get your DataDog API Key for use with DataDog's Helm Agent, click here](https://app.datadoghq.com/account/settings#agent/kubernetes).
+**To [get your DataDog API Key for use with DataDog's Helm Agent, click here](https://app.datadoghq.com/account/settings#agent/kubernetes)**.
 
 ### Retreiving the DataDog Helm Charts
 This sample uses [Helm](https://helm.sh/) to install [DataDog's Agent Helm Chart](https://github.com/DataDog/helm-charts/blob/master/charts/datadog/README.md) into a local Kubernetes cluster.
