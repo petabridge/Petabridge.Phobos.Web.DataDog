@@ -58,9 +58,6 @@ spec:
             secretKeyRef:
               name: datadog-secrets
               key: DD_API_KEY
-        livenessProbe:
-          tcpSocket:
-            port: 4055
         readinessProbe:
           httpGet:
             path: "/"
