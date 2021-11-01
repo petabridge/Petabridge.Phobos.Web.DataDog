@@ -83,10 +83,12 @@ namespace Petabridge.Phobos.Web
                         o.Enabled = true;
                         o.ReportingEnabled = true;
                     })
-                    .Report.ToStatsDUdp(b => {
-                        b.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
-                        b.SocketSettings.Port = int.Parse(Environment.GetEnvironmentVariable("DD_DOGSTATSD_PORT"));
-                        b.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
+                    .Report.ToStatsDUdp(opt =>
+                    {
+                        opt.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
+                        opt.SocketSettings.Port = int.Parse(Environment.GetEnvironmentVariable("DD_DOGSTATSD_PORT"));
+                        opt.SocketSettings.MaxUdpDatagramSize = 1024 * 4;
+                        opt.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
                     })
                     .Build();
             });
