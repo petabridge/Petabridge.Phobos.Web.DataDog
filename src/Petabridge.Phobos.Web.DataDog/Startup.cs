@@ -85,7 +85,7 @@ namespace Petabridge.Phobos.Web
                     })
                     .Report.ToStatsDUdp(opt =>
                     {
-                        opt.SocketSettings.Address = "localhost";
+                        opt.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
                         opt.SocketSettings.Port = 8125;
                         opt.SocketSettings.MaxUdpDatagramSize = 1024 * 4;
                         opt.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
