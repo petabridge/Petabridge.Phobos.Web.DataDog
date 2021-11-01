@@ -111,7 +111,7 @@ namespace Petabridge.Phobos.Web
                 var metrics = sp.GetRequiredService<IMetricsRoot>();
                 var tracer = sp.GetRequiredService<ITracer>();
 
-                var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf")).BootstrapFromDocker();
+                var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf"));
 
                 var phobosSetup = PhobosSetup.Create(new PhobosConfigBuilder()
                         .WithMetrics(m =>
@@ -120,9 +120,9 @@ namespace Petabridge.Phobos.Web
                     .WithSetup(BootstrapSetup.Create()
                         .WithConfig(config) // passes in the HOCON for Akka.NET to the ActorSystem
                         .WithActorRefProvider(PhobosProviderSelection
-                            .Cluster)); // last line activates Phobos inside Akka.NET
+                            .Local)); // last line activates Phobos inside Akka.NET
 
-                var sys = ActorSystem.Create("ClusterSys", phobosSetup);
+                var sys = ActorSystem.Create("ActorSys", phobosSetup);
 
                 // create actor "container" and bind it to DI, so it can be used by ASP.NET Core
                 return new AkkaActors(sys);
@@ -148,9 +148,9 @@ namespace Petabridge.Phobos.Web
                 var tracer = endpoints.ServiceProvider.GetService<ITracer>();
                 endpoints.MapGet("/", async context =>
                 {
-                    using (var s = tracer.BuildSpan("Cluster.Ask").StartActive())
+                    using (var s = tracer.BuildSpan("Actor.Ask").StartActive())
                     {
-                        // router actor will deliver message randomly to someone in cluster
+                        // router actor will deliver message randomly to some actor
                         var resp = await actors.RouterForwarderActor.Ask<string>($"hit from {context.TraceIdentifier}",
                             TimeSpan.FromSeconds(5));
                         await context.Response.WriteAsync(resp);
