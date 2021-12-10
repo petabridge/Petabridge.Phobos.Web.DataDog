@@ -15,19 +15,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="App.Metrics.StatsD" Version="4.2.0" />
-    <PackageReference Include="Datadog.Trace.OpenTracing" Version="1.25.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Reporting.Console" Version="4.2.0" />
-    <PackageReference Include="Datadog.Trace.OpenTracing" Version="1.26.1" />
+    <PackageReference Include="Datadog.Trace.OpenTracing" Version="1.31.0" />
+    <PackageReference Include="App.Metrics.Datadog" Version="$(AppMetricsVersion)" />
+    <PackageReference Include="App.Metrics.StatsD" Version="$(AppMetricsVersion)" />
     <PackageReference Include="Phobos.Actor.Cluster" Version="$(PhobosVersion)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
     <PackageReference Include="Petabridge.Cmd.Cluster" Version="$(PbmVersion)" />
     <PackageReference Include="Petabridge.Cmd.Remote" Version="$(PbmVersion)" />
     <PackageReference Include="Akka.Bootstrap.Docker">
-      <Version>0.5.2</Version>
+      <Version>0.5.3</Version>
     </PackageReference>
-    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.7.1" />
+    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.8.0" />
+    <PackageReference Include="App.Metrics.AspNetCore" Version="$(AppMetricsVersion)" />
+    <PackageReference Include="App.Metrics.AspNetCore.Tracking" Version="$(AppMetricsVersion)" />
+    <PackageReference Include="App.Metrics.Reporting.Console" Version="$(AppMetricsVersion)" />
   </ItemGroup>
 
 </Project>

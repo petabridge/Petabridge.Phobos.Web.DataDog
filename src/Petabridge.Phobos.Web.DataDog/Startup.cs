@@ -83,28 +83,16 @@ namespace Petabridge.Phobos.Web
                         o.Enabled = true;
                         o.ReportingEnabled = true;
                     })
-                    .Report.ToStatsDUdp(b => {
-                        b.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
-                        b.SocketSettings.Port = 8125;
-                        b.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
+                     .Report.ToStatsDUdp(opt =>
+                    {
+                        opt.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
+                        opt.SocketSettings.Port = 8125;
+                        opt.SocketSettings.MaxUdpDatagramSize = 1024 * 4;
+                        opt.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
                     })
                     .Build();
             });
             services.AddMetricsReportingHostedService();
-
-/*
-    .ToDatadogHttp(options => {
-                        // need to wait until we have DogstatsD support https://github.com/AppMetrics/AppMetrics/pull/627
-                        //options.Datadog.BaseUri = new Uri($"http://{Environment.GetEnvironmentVariable("DD_AGENT_HOST")}");
-                        options.Datadog.BaseUri = new Uri($"https://api.datadoghq.com/");
-                        options.Datadog.ApiKey = Environment.GetEnvironmentVariable("DD_API_KEY");
-                        options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
-                        options.HttpPolicy.FailuresBeforeBackoff = 5;
-                        options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
-                        options.FlushInterval = TimeSpan.FromSeconds(20);
-                    })
-*/
-
         }
 
         public static void ConfigureDataDogTracing(IServiceCollection services)
