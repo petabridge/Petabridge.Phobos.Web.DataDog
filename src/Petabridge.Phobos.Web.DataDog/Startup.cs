@@ -83,7 +83,7 @@ namespace Petabridge.Phobos.Web
                         o.Enabled = true;
                         o.ReportingEnabled = true;
                     })
-                    .Report.ToStatsDUdp(opt =>
+                     .Report.ToStatsDUdp(opt =>
                     {
                         opt.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
                         opt.SocketSettings.Port = 8125;
