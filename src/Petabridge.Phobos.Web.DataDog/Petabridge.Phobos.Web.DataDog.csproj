@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Datadog.Trace.OpenTracing" Version="1.31.0" />
+    <PackageReference Include="Datadog.Trace.OpenTracing" Version="2.1.1" />
     <PackageReference Include="App.Metrics.Datadog" Version="$(AppMetricsVersion)" />
     <PackageReference Include="App.Metrics.StatsD" Version="$(AppMetricsVersion)" />
     <PackageReference Include="Phobos.Actor.Cluster" Version="$(PhobosVersion)" />
