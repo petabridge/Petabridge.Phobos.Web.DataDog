@@ -6,6 +6,7 @@
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Petabridge.Phobos.Web
 {
@@ -19,7 +20,8 @@ namespace Petabridge.Phobos.Web
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                    .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
+                    .ConfigureLogging(logging => logging.AddOpenTelemetry((options => { })));
         }
     }
 }

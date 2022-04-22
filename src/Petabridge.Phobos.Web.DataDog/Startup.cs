@@ -8,6 +8,8 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IO;
+using System.Net;
+using System.Reflection;
 using Akka.Actor;
 using Akka.Bootstrap.Docker;
 using Akka.Configuration;
@@ -20,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Petabridge.Cmd.Cluster;
 using Petabridge.Cmd.Host;
@@ -52,9 +55,13 @@ namespace Petabridge.Phobos.Web
                 otelAgentAddress = "0.0.0.0:4317";
             }
             
+            var resource = ResourceBuilder.CreateDefault()
+                .AddService(Assembly.GetEntryAssembly()!.GetName().Name, serviceVersion:Assembly.GetEntryAssembly().GetName().Version.ToString(), serviceInstanceId:$"{Dns.GetHostName()}");
+
             services.AddOpenTelemetryTracing(tracer =>
             {
                 tracer.AddAspNetCoreInstrumentation()
+                    .SetResourceBuilder(resource)
                     .AddSource(AppOtelSourceName)
                     .AddHttpClientInstrumentation()
                     .AddPhobosInstrumentation()
@@ -68,6 +75,7 @@ namespace Petabridge.Phobos.Web
             services.AddOpenTelemetryMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
+                    .SetResourceBuilder(resource)
                     .AddMeter(AppOtelSourceName)
                     .AddHttpClientInstrumentation()
                     .AddPhobosInstrumentation()
@@ -77,6 +85,7 @@ namespace Petabridge.Phobos.Web
                         options.Endpoint = new Uri(otelAgentAddress);
                     });
             });
+            
 
             // sets up Akka.NET
             ConfigureAkka(services);
