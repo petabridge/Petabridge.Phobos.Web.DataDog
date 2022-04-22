@@ -86,7 +86,7 @@ namespace Petabridge.Phobos.Web
                      .Report.ToStatsDUdp(opt =>
                     {
                         opt.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
-                        opt.SocketSettings.Port = 8125;
+                        opt.SocketSettings.Port = int.Parse(Environment.GetEnvironmentVariable("DD_DOGSTATSD_PORT"));
                         opt.SocketSettings.MaxUdpDatagramSize = 1024 * 4;
                         opt.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
                     })
@@ -98,10 +98,8 @@ namespace Petabridge.Phobos.Web
         public static void ConfigureDataDogTracing(IServiceCollection services)
         {
             // Add DataDog Tracing
-            services.AddSingleton<ITracer>(sp =>
-            {
-                return OpenTracingTracerFactory.CreateTracer().WithScopeManager(new ActorScopeManager());
-            });
+            var tracer = OpenTracingTracerFactory.CreateTracer().WithScopeManager(new ActorScopeManager());
+            services.AddSingleton<ITracer>(tracer);
         }
 
         public static void ConfigureAkka(IServiceCollection services)
@@ -119,8 +117,7 @@ namespace Petabridge.Phobos.Web
                         .WithTracing(t => t.SetTracer(tracer))) // binds Phobos to same tracer as ASP.NET Core
                     .WithSetup(BootstrapSetup.Create()
                         .WithConfig(config) // passes in the HOCON for Akka.NET to the ActorSystem
-                        .WithActorRefProvider(PhobosProviderSelection
-                            .Cluster)); // last line activates Phobos inside Akka.NET
+                        .WithActorRefProvider(PhobosProviderSelection.Cluster)); // last line activates Phobos inside Akka.NET
 
                 var sys = ActorSystem.Create("ClusterSys", phobosSetup);
 
