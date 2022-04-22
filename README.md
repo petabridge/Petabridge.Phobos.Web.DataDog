@@ -48,15 +48,15 @@ To run this sample, you will need a copy of your DataDog API Key - which will be
 
 **To [get your DataDog API Key for use with DataDog's Helm Agent, click here](https://app.datadoghq.com/account/settings#agent/kubernetes)**.
 
-### Retreiving the OpenTelemetry Charts
-This sample uses [Helm](https://helm.sh/) to install [OpenTelemetry's OTLP Collector](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector) into a local Kubernetes cluster. We will configure the OTLP Collector to export its data to DataDog, per [DataDog's OpenTelemetry integration instructions](https://docs.datadoghq.com/tracing/setup_overview/open_standards/otel_collector_datadog_exporter/).
+### Retreiving the DataDog Helm Charts
+This sample uses [Helm](https://helm.sh/) to install [DataDog's Agent Helm Chart](https://github.com/DataDog/helm-charts/blob/main/charts/datadog/README.mdr) with OpenTelemetry OTLP support enabled into a local Kubernetes cluster.
 
 To run this sample you will need to [first install the Helm CLI](https://helm.sh/docs/intro/install/).
 
-Next, you will need to add the [OpenTelemetry helm chart repository](https://github.com/open-telemetry/opentelemetry-helm-charts) to your system:
+Next, you will need to add the [DataDog Helm repository](https://github.com/DataDog/helm-charts/) to your system:
 
 ```
-helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo add datadog https://helm.datadoghq.com
 helm repo update
 ```
 
