@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Petabridge.Cmd.Cluster;
@@ -59,6 +60,7 @@ namespace Petabridge.Phobos.Web
                     .AddPhobosInstrumentation()
                     .AddOtlpExporter(options =>
                     {
+                        options.Protocol = OtlpExportProtocol.Grpc;
                         options.Endpoint = new Uri(otelAgentAddress);
                     });
             });
@@ -71,6 +73,7 @@ namespace Petabridge.Phobos.Web
                     .AddPhobosInstrumentation()
                     .AddOtlpExporter(options =>
                     {
+                        options.Protocol = OtlpExportProtocol.Grpc;
                         options.Endpoint = new Uri(otelAgentAddress);
                     });
             });
