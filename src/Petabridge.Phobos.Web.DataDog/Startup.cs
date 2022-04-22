@@ -5,131 +5,101 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.IO;
-using System.Linq;
-using System.Net;
 using Akka.Actor;
 using Akka.Bootstrap.Docker;
 using Akka.Configuration;
-using App.Metrics;
-using App.Metrics.Formatting.StatsD;
-using App.Metrics.Reporting.StatsD;
-using Datadog.Trace.OpenTracing;
+using Akka.Hosting;
+using Akka.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using OpenTracing;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using Petabridge.Cmd.Cluster;
+using Petabridge.Cmd.Host;
+using Petabridge.Cmd.Remote;
 using Phobos.Actor;
-using Phobos.Actor.Configuration;
-using Phobos.Tracing;
-using Phobos.Tracing.Scopes;
+using Phobos.Hosting;
 
 namespace Petabridge.Phobos.Web
 {
     public class Startup
     {
-        /// <summary>
-        ///     Name of the <see cref="Environment" /> variable used to direct Phobos' Jaeger
-        ///     output.
-        ///     See https://github.com/jaegertracing/jaeger-client-csharp for details.
-        /// </summary>
-        public const string JaegerAgentHostEnvironmentVar = "JAEGER_AGENT_HOST";
 
-        public const string JaegerEndpointEnvironmentVar = "JAEGER_ENDPOINT";
-
-        public const string JaegerAgentPortEnvironmentVar = "JAEGER_AGENT_PORT";
-
-        public const int DefaultJaegerAgentPort = 6832;
+        public const string AppOtelSourceName = "MyApp";
+        public static readonly ActivitySource MyTracer = new ActivitySource(AppOtelSourceName);
+        public static readonly Meter MyMeter = new Meter(AppOtelSourceName);
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // enables OpenTracing for ASP.NET Core
-            services.AddOpenTracing(o =>
+            var otelAgentAddress = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+            if (string.IsNullOrEmpty(otelAgentAddress))
             {
-                o.ConfigureAspNetCore(a =>
-                {
-                    a.Hosting.OperationNameResolver = context => $"{context.Request.Method} {context.Request.Path}";
-
-                    // skip Prometheus HTTP /metrics collection from appearing in our tracing system
-                    a.Hosting.IgnorePatterns.Add(x => x.Request.Path.StartsWithSegments(new PathString("/metrics")));
-                });
-                o.ConfigureGenericDiagnostics(c => { });
+                // default local address
+                otelAgentAddress = "0.0.0.0:4317";
+            }
+            
+            services.AddOpenTelemetryTracing(tracer =>
+            {
+                tracer.AddAspNetCoreInstrumentation()
+                    .AddSource(AppOtelSourceName)
+                    .AddHttpClientInstrumentation()
+                    .AddPhobosInstrumentation()
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(otelAgentAddress);
+                    });
             });
 
-            // sets up Prometheus + DataDog + ASP.NET Core metrics
-            ConfigureAppMetrics(services);
-
-            // sets up DataDog tracing
-            ConfigureDataDogTracing(services);
+            services.AddOpenTelemetryMetrics(metrics =>
+            {
+                metrics.AddAspNetCoreInstrumentation()
+                    .AddMeter(AppOtelSourceName)
+                    .AddHttpClientInstrumentation()
+                    .AddPhobosInstrumentation()
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(otelAgentAddress);
+                    });
+            });
 
             // sets up Akka.NET
             ConfigureAkka(services);
         }
-
-        public static void ConfigureAppMetrics(IServiceCollection services)
-        {
-            services.AddMetricsTrackingMiddleware();
-            services.AddMetrics(b =>
-            {
-                var metrics = b.Configuration.Configure(o =>
-                    {
-                        o.GlobalTags.Add("host", Dns.GetHostName());
-                        o.DefaultContextLabel = "akka.net";
-                        o.Enabled = true;
-                        o.ReportingEnabled = true;
-                    })
-                     .Report.ToStatsDUdp(opt =>
-                    {
-                        opt.SocketSettings.Address = Environment.GetEnvironmentVariable("DD_AGENT_HOST");
-                        opt.SocketSettings.Port = 8125;
-                        opt.SocketSettings.MaxUdpDatagramSize = 1024 * 4;
-                        opt.StatsDOptions.MetricNameFormatter = new DefaultDogStatsDMetricStringSerializer();
-                    })
-                    .Build();
-            });
-            services.AddMetricsReportingHostedService();
-        }
-
-        public static void ConfigureDataDogTracing(IServiceCollection services)
-        {
-            // Add DataDog Tracing
-            services.AddSingleton<ITracer>(sp =>
-            {
-                return OpenTracingTracerFactory.CreateTracer().WithScopeManager(new ActorScopeManager());
-            });
-        }
-
+        
         public static void ConfigureAkka(IServiceCollection services)
         {
-            services.AddSingleton(sp =>
+            var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf")).BootstrapFromDocker();
+
+            services.AddAkka("ClusterSys", (builder, provider) =>
             {
-                var metrics = sp.GetRequiredService<IMetricsRoot>();
-                var tracer = sp.GetRequiredService<ITracer>();
-
-                var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf")).BootstrapFromDocker();
-
-                var phobosSetup = PhobosSetup.Create(new PhobosConfigBuilder()
-                        .WithMetrics(m =>
-                            m.SetMetricsRoot(metrics)) // binds Phobos to same IMetricsRoot as ASP.NET Core
-                        .WithTracing(t => t.SetTracer(tracer))) // binds Phobos to same tracer as ASP.NET Core
-                    .WithSetup(BootstrapSetup.Create()
-                        .WithConfig(config) // passes in the HOCON for Akka.NET to the ActorSystem
-                        .WithActorRefProvider(PhobosProviderSelection
-                            .Cluster)); // last line activates Phobos inside Akka.NET
-
-                var sys = ActorSystem.Create("ClusterSys", phobosSetup);
-
-                // create actor "container" and bind it to DI, so it can be used by ASP.NET Core
-                return new AkkaActors(sys);
+                builder
+                    .AddHocon(config)
+                    .WithPhobos(AkkaRunMode.AkkaCluster)
+                    .StartActors((system, registry) =>
+                    {
+                        var consoleActor = system.ActorOf(Props.Create(() => new ConsoleActor()), "console");
+                        var routerActor = system.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "echo");
+                        var routerForwarder =
+                            system.ActorOf(Props.Create(() => new RouterForwarderActor(routerActor)), "fwd");
+                        registry.TryRegister<RouterForwarderActor>(routerForwarder);
+                    })
+                    .StartActors((system, registry) =>
+                    {
+                        // start https://cmd.petabridge.com/ for diagnostics and profit
+                        var pbm = PetabridgeCmd.Get(system); // start Pbm
+                        pbm.RegisterCommandPalette(ClusterCommands.Instance);
+                        pbm.RegisterCommandPalette(RemoteCommands.Instance);
+                        pbm.Start(); // begin listening for PBM management commands
+                    });
             });
-
-            // this will manage Akka.NET lifecycle
-            services.AddHostedService<AkkaService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -139,19 +109,15 @@ namespace Petabridge.Phobos.Web
 
             app.UseRouting();
 
-            // enable App.Metrics routes
-            app.UseMetricsAllMiddleware();
-
             app.UseEndpoints(endpoints =>
             {
-                var actors = endpoints.ServiceProvider.GetService<AkkaActors>();
-                var tracer = endpoints.ServiceProvider.GetService<ITracer>();
+                var routerForwarder = endpoints.ServiceProvider.GetRequiredService<ActorRegistry>().Get<RouterForwarderActor>();
                 endpoints.MapGet("/", async context =>
                 {
-                    using (var s = tracer.BuildSpan("Cluster.Ask").StartActive())
+                    using (var s = MyTracer.StartActivity("Cluster.Ask", ActivityKind.Client))
                     {
                         // router actor will deliver message randomly to someone in cluster
-                        var resp = await actors.RouterForwarderActor.Ask<string>($"hit from {context.TraceIdentifier}",
+                        var resp = await routerForwarder.Ask<string>($"hit from {context.TraceIdentifier}",
                             TimeSpan.FromSeconds(5));
                         await context.Response.WriteAsync(resp);
                     }
