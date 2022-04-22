@@ -81,6 +81,8 @@ spec:
             secretKeyRef:
               name: datadog-secrets
               key: DD_API_KEY
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://$(DD_AGENT_HOST):4317"
         livenessProbe:
           tcpSocket:
             port: 4055
