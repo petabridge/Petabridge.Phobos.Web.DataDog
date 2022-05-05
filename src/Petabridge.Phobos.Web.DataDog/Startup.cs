@@ -52,7 +52,7 @@ namespace Petabridge.Phobos.Web
             if (string.IsNullOrEmpty(otelAgentAddress))
             {
                 // default local address
-                otelAgentAddress = "0.0.0.0:4317";
+                otelAgentAddress = "http://0.0.0.0:4317";
             }
             
             var resource = ResourceBuilder.CreateDefault()
