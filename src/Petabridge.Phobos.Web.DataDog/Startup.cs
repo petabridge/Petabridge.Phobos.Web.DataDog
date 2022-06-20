@@ -34,7 +34,6 @@ namespace Petabridge.Phobos.Web
 {
     public class Startup
     {
-
         public const string AppOtelSourceName = "MyApp";
         public static readonly ActivitySource MyTracer = new ActivitySource(AppOtelSourceName);
         public static readonly Meter MyMeter = new Meter(AppOtelSourceName);
@@ -47,16 +46,18 @@ namespace Petabridge.Phobos.Web
             // see https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/README.md#special-case-when-using-insecure-channel
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport",
                 true);
-            
+
             var otelAgentAddress = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
             if (string.IsNullOrEmpty(otelAgentAddress))
             {
                 // default local address
                 otelAgentAddress = "http://0.0.0.0:4317";
             }
-            
+
             var resource = ResourceBuilder.CreateDefault()
-                .AddService(Assembly.GetEntryAssembly()!.GetName().Name, serviceVersion:Assembly.GetEntryAssembly().GetName().Version.ToString(), serviceInstanceId:$"{Dns.GetHostName()}");
+                .AddService(Assembly.GetEntryAssembly()!.GetName().Name,
+                    serviceVersion: Assembly.GetEntryAssembly().GetName().Version.ToString(),
+                    serviceInstanceId: $"{Dns.GetHostName()}");
 
             services.AddOpenTelemetryTracing(tracer =>
             {
@@ -79,18 +80,19 @@ namespace Petabridge.Phobos.Web
                     .AddMeter(AppOtelSourceName)
                     .AddHttpClientInstrumentation()
                     .AddPhobosInstrumentation()
-                    .AddOtlpExporter(options =>
+                    .AddOtlpExporter((options, readerOptions) =>
                     {
+                        readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Delta;
                         options.Protocol = OtlpExportProtocol.Grpc;
                         options.Endpoint = new Uri(otelAgentAddress);
                     });
             });
-            
+
 
             // sets up Akka.NET
             ConfigureAkka(services);
         }
-        
+
         public static void ConfigureAkka(IServiceCollection services)
         {
             var config = ConfigurationFactory.ParseString(File.ReadAllText("app.conf")).BootstrapFromDocker();
@@ -128,7 +130,8 @@ namespace Petabridge.Phobos.Web
 
             app.UseEndpoints(endpoints =>
             {
-                var routerForwarder = endpoints.ServiceProvider.GetRequiredService<ActorRegistry>().Get<RouterForwarderActor>();
+                var routerForwarder = endpoints.ServiceProvider.GetRequiredService<ActorRegistry>()
+                    .Get<RouterForwarderActor>();
                 endpoints.MapGet("/", async context =>
                 {
                     using (var s = MyTracer.StartActivity("Cluster.Ask", ActivityKind.Client))
