@@ -20,7 +20,7 @@
     <TestSdkVersion>17.2.0</TestSdkVersion>
     <AkkaVersion>1.4.39</AkkaVersion>
     <AppMetricsVersion>4.3.0</AppMetricsVersion>
-    <PbmVersion>0.8.5</PbmVersion>
+    <PbmVersion>1.1.3</PbmVersion>
     <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
     <PhobosVersion>1.2.5</PhobosVersion>
   </PropertyGroup>
