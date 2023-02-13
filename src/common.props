@@ -21,7 +21,7 @@
     <AkkaVersion>1.4.39</AkkaVersion>
     <AppMetricsVersion>4.3.0</AppMetricsVersion>
     <PbmVersion>0.8.5</PbmVersion>
-    <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
+    <FluentAssertionsVersion>6.10.0</FluentAssertionsVersion>
     <PhobosVersion>1.2.5</PhobosVersion>
   </PropertyGroup>
 </Project>
