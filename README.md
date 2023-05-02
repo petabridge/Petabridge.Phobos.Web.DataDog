@@ -112,6 +112,7 @@ replicaset.apps/prometheus-deployment-c6d99b8b9   1         1         1       11
 Once the cluster is fully up and running you can explore the application and its associated telemetry via the following Urls:
 
 * [http://localhost:1880](http://localhost:1880) - generates traffic across the Akka.NET cluster inside the `phobos-web` service.
+* [http://localhost:1880/shard](http://localhost:1880/shard) - generates a single Akka.NET cluster sharding entity inside the `phobos-web` service.
 
 And you should be able to view both the metrics and traces produced by Petabridge.Phobos.Web.DataDog inside your DataDog UI.
 
