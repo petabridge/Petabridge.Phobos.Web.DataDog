@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Event;
 using Akka.Util;
@@ -81,6 +82,24 @@ namespace Petabridge.Phobos.Web
             {
                 _log.Info("Received: {0}", _);
                 _routerActor.Forward(_);
+            });
+        }
+    }
+
+    public struct EntityRegion
+    {
+    }
+    
+    public sealed class EntityActor : ReceiveActor
+    {
+        private readonly List<string> _requests = new List<string>();
+
+        public EntityActor()
+        {
+            Receive<string>(str =>
+            {
+                _requests.Add(str);
+                Sender.Tell(_requests);
             });
         }
     }

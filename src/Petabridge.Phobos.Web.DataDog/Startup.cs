@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IO;
@@ -12,6 +13,8 @@ using System.Net;
 using System.Reflection;
 using Akka.Actor;
 using Akka.Bootstrap.Docker;
+using Akka.Cluster.Hosting;
+using Akka.Cluster.Tools.Singleton;
 using Akka.Configuration;
 using Akka.Hosting;
 using Akka.Routing;
@@ -101,6 +104,12 @@ namespace Petabridge.Phobos.Web
                 builder
                     .AddHocon(config, HoconAddMode.Prepend)
                     .WithPhobos(AkkaRunMode.AkkaCluster)
+                    .WithShardRegion<EntityRegion>(
+                        "entities",
+                        _ => Props.Create(() => new EntityActor()), 
+                        new TraceIdentifierMessageExtractor(30, 120), 
+                        new ShardOptions())
+                    .AddHocon(ClusterSingletonManager.DefaultConfig(), HoconAddMode.Append)
                     .StartActors((system, registry) =>
                     {
                         var consoleActor = system.ActorOf(Props.Create(() => new ConsoleActor()), "console");
@@ -131,6 +140,9 @@ namespace Petabridge.Phobos.Web
             {
                 var routerForwarder = endpoints.ServiceProvider.GetRequiredService<ActorRegistry>()
                     .Get<RouterForwarderActor>();
+                var shardRegion = endpoints.ServiceProvider.GetRequiredService<ActorRegistry>()
+                    .Get<EntityRegion>();
+                
                 endpoints.MapGet("/", async context =>
                 {
                     using (var s = MyTracer.StartActivity("Cluster.Ask", ActivityKind.Client))
@@ -140,6 +152,15 @@ namespace Petabridge.Phobos.Web
                             TimeSpan.FromSeconds(5));
                         await context.Response.WriteAsync(resp);
                     }
+                });
+                
+                endpoints.MapGet("/shard/", async context =>
+                {
+                    using var s = MyTracer.StartActivity("Cluster.Sharding.Ask", ActivityKind.Client);
+
+                    var resp = await shardRegion.Ask<List<string>>(context.TraceIdentifier,
+                        TimeSpan.FromSeconds(5));
+                    await context.Response.WriteAsJsonAsync(resp);
                 });
             });
         }
