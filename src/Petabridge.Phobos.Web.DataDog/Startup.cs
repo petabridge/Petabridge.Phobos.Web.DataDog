@@ -59,35 +59,34 @@ namespace Petabridge.Phobos.Web
                     serviceVersion: Assembly.GetEntryAssembly().GetName().Version.ToString(),
                     serviceInstanceId: $"{Dns.GetHostName()}");
 
-            services.AddOpenTelemetryTracing(tracer =>
-            {
-                tracer.AddAspNetCoreInstrumentation()
-                    .SetResourceBuilder(resource)
-                    .AddSource(AppOtelSourceName)
-                    .AddHttpClientInstrumentation()
-                    .AddPhobosInstrumentation()
-                    .AddOtlpExporter(options =>
-                    {
-                        options.Protocol = OtlpExportProtocol.Grpc;
-                        options.Endpoint = new Uri(otelAgentAddress);
-                    });
-            });
-
-            services.AddOpenTelemetryMetrics(metrics =>
-            {
-                metrics.AddAspNetCoreInstrumentation()
-                    .SetResourceBuilder(resource)
-                    .AddMeter(AppOtelSourceName)
-                    .AddHttpClientInstrumentation()
-                    .AddPhobosInstrumentation()
-                    .AddOtlpExporter((options, readerOptions) =>
-                    {
-                        readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Delta;
-                        options.Protocol = OtlpExportProtocol.Grpc;
-                        options.Endpoint = new Uri(otelAgentAddress);
-                    });
-            });
-
+            services.AddOpenTelemetry()
+                .WithTracing(tracer =>
+                {
+                    tracer.AddAspNetCoreInstrumentation()
+                        .SetResourceBuilder(resource)
+                        .AddSource(AppOtelSourceName)
+                        .AddHttpClientInstrumentation()
+                        .AddPhobosInstrumentation()
+                        .AddOtlpExporter(options =>
+                        {
+                            options.Protocol = OtlpExportProtocol.Grpc;
+                            options.Endpoint = new Uri(otelAgentAddress);
+                        });
+                })
+                .WithMetrics(metrics =>
+                {
+                    metrics.AddAspNetCoreInstrumentation()
+                        .SetResourceBuilder(resource)
+                        .AddMeter(AppOtelSourceName)
+                        .AddHttpClientInstrumentation()
+                        .AddPhobosInstrumentation()
+                        .AddOtlpExporter((options, readerOptions) =>
+                        {
+                            readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Delta;
+                            options.Protocol = OtlpExportProtocol.Grpc;
+                            options.Endpoint = new Uri(otelAgentAddress);
+                        });
+                });
 
             // sets up Akka.NET
             ConfigureAkka(services);
@@ -100,7 +99,7 @@ namespace Petabridge.Phobos.Web
             services.AddAkka("ClusterSys", (builder, provider) =>
             {
                 builder
-                    .AddHocon(config)
+                    .AddHocon(config, HoconAddMode.Prepend)
                     .WithPhobos(AkkaRunMode.AkkaCluster)
                     .StartActors((system, registry) =>
                     {
@@ -115,7 +114,7 @@ namespace Petabridge.Phobos.Web
                         // start https://cmd.petabridge.com/ for diagnostics and profit
                         var pbm = PetabridgeCmd.Get(system); // start Pbm
                         pbm.RegisterCommandPalette(ClusterCommands.Instance);
-                        pbm.RegisterCommandPalette(RemoteCommands.Instance);
+                        pbm.RegisterCommandPalette(new RemoteCommands());
                         pbm.Start(); // begin listening for PBM management commands
                     });
             });
