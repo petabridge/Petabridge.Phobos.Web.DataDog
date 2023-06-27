@@ -26,6 +26,6 @@
     <PhobosVersion>2.3.0</PhobosVersion>
     <OTelVersion>1.4.0</OTelVersion>
     <OTelInstrumentationVersion>1.0.0-rc9.14</OTelInstrumentationVersion>
-    <OTelExporterVersion>1.4.0</OTelExporterVersion>
+    <OTelExporterVersion>1.5.1</OTelExporterVersion>
   </PropertyGroup>
 </Project>
